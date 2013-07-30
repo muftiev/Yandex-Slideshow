@@ -49,9 +49,12 @@ var Slideshow = {
 		var thumb_position = (this.thumb_hide)? thumbs_wrap_size : 0;
 		var slide_wrap_size = (this.thumb_hide)? this.width : this.width-thumbs_wrap_size;
 		html = '<div class="thumbs-wrap" style="width:'+thumbs_wrap_size+'px; height:'+this.height+'px"><ul class="thumbs-list" style="width:'+thumbs_wrap_size+'px;right:-'+thumb_position+'px"></ul></div>';
-		$(".slideshow-wrap").html(html);		
+		$(".slideshow-wrap").html(html);
+		this.thumbs_mousewheel($(".thumbs-list"));		
 		html = '<div class="slide-wrap" style="width:'+slide_wrap_size+'px"><div class="slide-img-wrap"></div></div>';
 		$(".slideshow-wrap").prepend(html);
+		html = (this.loader)? '<div id="loader"><img src="img/load.gif" alt="loading" /></div>' : '';
+		$(".slide-wrap").append(html);
 	},
 	build_url: function(){
 		var username = this.username;
@@ -92,5 +95,22 @@ var Slideshow = {
 	            }
 	        }
 	    });
+	},
+	thumbs_mousewheel: function(target){
+		var self = this;
+		target.mousewheel(function(event, delta, height){
+			var position = parseInt($(this).css("top"));
+	        var height = parseInt($(this).height()) - parseInt($(this).parent().height());
+	        if(height>0){
+		        var slide = parseInt($(this).parent().outerHeight())*0.8;
+		        if(position+slide*delta>0) slide = 0-position;
+		        if(position+slide*delta<-height) slide = height+position;
+		        if((position+slide*delta*2<-height) && (position+slide*delta>-height) && ($(".thumbs-list").find(".list-item").length<self.img_count)) {
+		            var next = $(this).children().last().find("img").attr("data-next");
+		            if(next!=="undefined") self.thumbs_load(next);
+		        }
+		        $(this).stop().animate({"top" : position+slide*delta}, 500);
+		    }
+		});		
 	}
 }
