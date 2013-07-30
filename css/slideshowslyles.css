@@ -27,3 +27,10 @@
 .thumbs-wrap:hover .thumbs-list {
 	right: 0 !important;
 }
+
+.thumbs-list .list-item {
+	background: #ccc;
+	//background: rgba(0, 0, 0, 0.6);
+	padding-top: 3px;
+	text-align: center;
+}

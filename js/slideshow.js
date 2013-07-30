@@ -13,6 +13,8 @@ jQuery.fn.slideshow = function(options) {
 	Slideshowobject = inherit(Slideshow)
 	Slideshowobject.init(options);
 	Slideshowobject.construct(this);
+	Slideshowobject.build_url();
+	Slideshowobject.thumbs_load();
 }
 
 function inherit(proto) {
@@ -33,7 +35,6 @@ var Slideshow = {
 	loader: true,
 	username: "muftiev-rr",
 	album: "357412",
-	password: "",
 	img_count: 0,
 
 	init: function(options){
@@ -51,5 +52,45 @@ var Slideshow = {
 		$(".slideshow-wrap").html(html);		
 		html = '<div class="slide-wrap" style="width:'+slide_wrap_size+'px"><div class="slide-img-wrap"></div></div>';
 		$(".slideshow-wrap").prepend(html);
+	},
+	build_url: function(){
+		var username = this.username;
+		var album = this.album;
+		var password = this.password;
+		this.url = (username.length)? "http://api-fotki.yandex.ru/api/users/"+username : this.url;
+		this.url += (album.length)? "/album/"+album : "";
+		this.url += "/photos/?format=json";
+	},
+	thumbs_load: function(){
+		var self = this;
+		var url = self.url;
+		var limit = (self.img_count)? self.img_count - $(".thumbs-list").find(".list-item").length : 30;
+		limit = (limit>30)? 30 : limit;
+		url += "&limit="+limit;
+		var loader = self.loader;
+		var thumb_size = self.thumb_size;
+		$.ajax({
+	        type: "GET",
+	        url: url,        
+	        dataType: "jsonp",
+	        beforeSend: function(){
+	        	if(loader){
+	            	$("#loader").show();
+	            }
+	        },
+	        success: function(data){
+	            var limit = data.entries.length;
+	            self.img_count = data.imageCount;
+	            for(var i=0; i<limit; i++){ 
+	                var data_next = (i==limit-1 ? 'data-next="'+data.links.next+'"' : '');
+	                $(".thumbs-list").prepend('<li class="list-item"><a href="#?imgId='+data.entries[i].updated+'" class="list-item-link"><img class="list-item-img" style="max-width: '+thumb_size+'px" data-upd="'+data.entries[i].updated+'" data-L-src="'+data.entries[i].img.L.href+'" '+data_next+' src="'+data.entries[i].img.XXS.href+'" alt="'+data.entries[i].title+'" /></li>');
+	            }
+	        },
+	        complete: function(){
+	            if(loader){
+	            	$("#loader").hide();
+	            }
+	        }
+	    });
 	}
 }
