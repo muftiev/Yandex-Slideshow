@@ -50,10 +50,12 @@ var Slideshow = {
 		var slide_wrap_size = (this.thumb_hide)? this.width : this.width-thumbs_wrap_size;
 		html = '<div class="thumbs-wrap" style="width:'+thumbs_wrap_size+'px; height:'+this.height+'px"><ul class="thumbs-list" style="width:'+thumbs_wrap_size+'px;right:-'+thumb_position+'px"></ul></div>';
 		$(".slideshow-wrap").html(html);
-		this.thumbs_mousewheel($(".thumbs-list"));		
+		this.thumbs_mousewheel($(".thumbs-list"));	
+		this.navigate();	
 		html = '<div class="slide-wrap" style="width:'+slide_wrap_size+'px"><div class="slide-img-wrap"></div></div>';
 		$(".slideshow-wrap").prepend(html);
-		html = (this.loader)? '<div id="loader"><img src="img/load.gif" alt="loading" /></div>' : '';
+		html = (this.arrow_nav)? '<div class="nav-wrap hidden"><a class="nav nav-left"></a><a class="nav nav-right"></a></div>' : '';
+		html += (this.loader)? '<div id="loader"><img src="img/load.gif" alt="loading" /></div>' : '';
 		$(".slide-wrap").append(html);
 	},
 	build_url: function(){
@@ -112,5 +114,27 @@ var Slideshow = {
 		        $(this).stop().animate({"top" : position+slide*delta}, 500);
 		    }
 		});		
+	},
+	thumbs_scroll: function(target){
+		var prev_elem = $(".thumbs-list").find(".active");
+	    prev_elem.removeClass("active");
+	    var prev_index = $(".thumbs-list .list-item").index(prev_elem);
+	    $(target).addClass("active");
+	    var index = $(".thumbs-list .list-item").index(target);
+	    var li_height = $(".list-item").outerHeight()+parseInt($(".list-item").css("margin-top"))+parseInt($(".list-item").css("margin-bottom"));
+	    var ul_height = $(".thumbs-list li").length * li_height;
+	    var wrapper_height = $(".thumbs-list").parent().outerHeight();
+	    var slide = Math.round((index+1)*li_height-wrapper_height/2-li_height/2);
+	    if(slide>0 && slide<ul_height-wrapper_height) $(".thumbs-list").animate({"top" : -slide}, 500);
+	    else if(slide<ul_height-wrapper_height) $(".thumbs-list").animate({"top" : 0}, 500);
+	    else $(".thumbs-list").animate({"top" : -(ul_height-wrapper_height)}, 500);
+	},
+	navigate: function(){
+		var self = this;
+		$(document).on("click", ".list-item", function(event){
+			self.thumbs_scroll(this);
+			var url = $(this).find("img").attr("data-l-src");
+       		var alt = $(this).find("img").attr("alt");
+		});      
 	}
 }
