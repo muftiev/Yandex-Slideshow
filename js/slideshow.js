@@ -5,6 +5,7 @@ jQuery(document).ready(function(){
 		height: 350,
 		thumb_size: 75,
 		thumb_hide: false,
+		animated: false
 	});
 	
 });
@@ -26,6 +27,7 @@ function inherit(proto) {
 var Slideshow = {
 	width: 500,
 	height: 450,
+	animated: true,
 	autostart: true,
 	duration: 200,
 	thumb_size: 50,
@@ -52,7 +54,7 @@ var Slideshow = {
 		$(".slideshow-wrap").html(html);
 		this.thumbs_mousewheel($(".thumbs-list"));	
 		this.navigate();	
-		html = '<div class="slide-wrap" style="width:'+slide_wrap_size+'px"><div class="slide-img-wrap"></div></div>';
+		html = '<div class="slide-wrap" style="width:'+slide_wrap_size+'px"><div class="slide-img-wrap"><div class="slide current"></div><div class="slide next"></div></div></div>';
 		$(".slideshow-wrap").prepend(html);
 		html = (this.arrow_nav)? '<div class="nav-wrap hidden"><a class="nav nav-left"></a><a class="nav nav-right"></a></div>' : '';
 		html += (this.loader)? '<div id="loader"><img src="img/load.gif" alt="loading" /></div>' : '';
@@ -135,6 +137,41 @@ var Slideshow = {
 			self.thumbs_scroll(this);
 			var url = $(this).find("img").attr("data-l-src");
        		var alt = $(this).find("img").attr("alt");
-		});      
+       		self.show_slide(url, alt);
+		}); 
+		if(self.arrow_nav) {
+			$(document).on("click", ".nav", function(event){
+				var activeIndex = $(".thumbs-list .list-item").index($(".thumbs-list .active"));
+				if($(this).hasClass("nav-left")) $(".thumbs-list .list-item").eq(activeIndex-1).click();
+				if($(this).hasClass("nav-right")) $(".thumbs-list .list-item").eq(activeIndex+1).click();
+			});
+		} 
+		if(self.key_nav) {
+			$(document).on("keydown", function(event){
+				switch(event.keyCode){
+					case 39:
+						$(".nav-right").click();
+						break;
+					case 37:
+						$(".nav-left").click();
+						break;
+				}
+			});
+		} 
+	},
+	show_slide: function(url, alt){
+		var target = $(".active-img");
+	    if(!this.animated) {
+	        $(".slide.next").html('<img class="slide-img" src="'+url+'" alt="'+alt+'" />');
+	        $(".slide.next").animate({"opacity" : 1}, 1000, function(){
+	                $(this).addClass("current").removeClass("next");
+	            });
+	        $(".slide.current").animate({"opacity" : 0}, 1000, function(){
+	                $(this).empty().removeClass("current").addClass("next");
+	            });
+			
+	    } else {
+	         
+	    }
 	}
 }
