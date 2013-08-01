@@ -95,6 +95,11 @@
 	-moz-transition: all 0.5s ease;
 	transition: all 0.5s ease;
 	z-index: 1000;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	-o-user-select: none;
+	user-select: none; 
 }
 
 .nav {

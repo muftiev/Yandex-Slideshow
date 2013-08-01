@@ -133,41 +133,53 @@ var Slideshow = {
 	},
 	navigate: function(){
 		var self = this;
+		self.nav_timeout = true;
 		$(document).on("click", ".list-item", function(event){
-			self.thumbs_scroll(this);
-			var url = $(this).find("img").attr("data-l-src");
-       		var alt = $(this).find("img").attr("alt");
-       		self.show_slide(url, alt);
+			if(self.nav_timeout){
+				self.nav_timeout = false;
+				self.thumbs_scroll(this);
+				var url = $(this).find("img").attr("data-l-src");
+	       		var alt = $(this).find("img").attr("alt");
+	       		self.show_slide(url, alt);
+	       	}
 		}); 
 		if(self.arrow_nav) {
 			$(document).on("click", ".nav", function(event){
-				var activeIndex = $(".thumbs-list .list-item").index($(".thumbs-list .active"));
-				if($(this).hasClass("nav-left")) $(".thumbs-list .list-item").eq(activeIndex-1).click();
-				if($(this).hasClass("nav-right")) $(".thumbs-list .list-item").eq(activeIndex+1).click();
+				if(self.nav_timeout){
+					var activeIndex = $(".thumbs-list .list-item").index($(".thumbs-list .active"));
+					if($(this).hasClass("nav-left")) $(".thumbs-list .list-item").eq(activeIndex-1).click();
+					if($(this).hasClass("nav-right")) $(".thumbs-list .list-item").eq(activeIndex+1).click();
+					self.nav_timeout = false;
+					if(activeIndex == $(".thumbs-list .list-item").size()-1) self.nav_timeout = true;														
+				}
 			});
 		} 
 		if(self.key_nav) {
 			$(document).on("keydown", function(event){
-				switch(event.keyCode){
-					case 39:
-						$(".nav-right").click();
-						break;
-					case 37:
-						$(".nav-left").click();
-						break;
+				if(self.nav_timeout){
+					switch(event.keyCode){
+						case 39:
+							$(".nav-right").click();
+							break;
+						case 37:
+							$(".nav-left").click();
+							break;
+					}				
 				}
 			});
 		} 
 	},
 	show_slide: function(url, alt){
+		var self = this;
 		var target = $(".active-img");
-	    if(!this.animated) {
+	    if(!self.animated) {
 	        $(".slide.next").html('<img class="slide-img" src="'+url+'" alt="'+alt+'" />');
-	        $(".slide.next").animate({"opacity" : 1}, 1000, function(){
+	        $(".slide.next").animate({"opacity" : 1}, 500, function(){
 	                $(this).addClass("current").removeClass("next");
 	            });
-	        $(".slide.current").animate({"opacity" : 0}, 1000, function(){
+	        $(".slide.current").animate({"opacity" : 0}, 500, function(){
 	                $(this).empty().removeClass("current").addClass("next");
+	                self.nav_timeout = true;
 	            });
 			
 	    } else {
