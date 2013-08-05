@@ -4,8 +4,10 @@ jQuery(document).ready(function(){
 		width: 500,
 		height: 350,
 		thumb_size: 75,
-		thumb_hide: false,
-		animated: false
+		thumb_hide: true,
+		animated: false,
+		autostart: false,
+		delay: 0
 	});
 	
 });
@@ -29,11 +31,12 @@ var Slideshow = {
 	height: 450,
 	animated: true,
 	autostart: true,
-	duration: 200,
+	delay: 1000,
 	thumb_size: 50,
 	thumb_hide: true,
 	arrow_nav: true,
 	key_nav: true,
+	fullsize: true,
 	loader: true,
 	username: "muftiev-rr",
 	album: "357412",
@@ -45,11 +48,12 @@ var Slideshow = {
 		}
 	},
 	construct: function(target){
+		var self = this;
 		var html = '<div class="slideshow-wrap" style="width:'+this.width+'px; height:'+this.height+'px"></div>';
 		target.html(html);
 		var thumbs_wrap_size = this.thumb_size+6;
 		var thumb_position = (this.thumb_hide)? thumbs_wrap_size : 0;
-		var slide_wrap_size = (this.thumb_hide)? this.width : this.width-thumbs_wrap_size;
+		var slide_wrap_size = (this.thumb_hide)? this.width : this.width-thumbs_wrap_size;		
 		html = '<div class="thumbs-wrap" style="width:'+thumbs_wrap_size+'px; height:'+this.height+'px"><ul class="thumbs-list" style="width:'+thumbs_wrap_size+'px;right:-'+thumb_position+'px"></ul></div>';
 		$(".slideshow-wrap").html(html);
 		this.thumbs_mousewheel($(".thumbs-list"));	
@@ -57,8 +61,17 @@ var Slideshow = {
 		html = '<div class="slide-wrap" style="width:'+slide_wrap_size+'px"><div class="slide-img-wrap"><div class="slide current"></div><div class="slide next"></div></div></div>';
 		$(".slideshow-wrap").prepend(html);
 		html = (this.arrow_nav)? '<div class="nav-wrap hidden"><a class="nav nav-left"></a><a class="nav nav-right"></a></div>' : '';
+		html += (this.fullsize)? '<a class="fullsize"><img src="img/fullscreen.png" alt="fullsize"></a>' : '';
 		html += (this.loader)? '<div id="loader"><img src="img/load.gif" alt="loading" /></div>' : '';
 		$(".slide-wrap").append(html);
+		if(!this.autostart) {
+			$(".slideshow-wrap").append('<div class="start-button"><img src="img/play1.png" alt="play"></div>');
+			$(document).on("click", ".start-button", function(event) {
+				$(this).remove();
+				$(".thumbs-list .list-item:first").click();
+				if(this.delay) setTimeout(self.slideshow_autoplay, self.delay);
+			}); 
+		}
 	},
 	build_url: function(){
 		var username = this.username;
@@ -76,14 +89,14 @@ var Slideshow = {
 		url += "&limit="+limit;
 		var loader = self.loader;
 		var thumb_size = self.thumb_size;
+		var autostart = self.autostart;
+		var delay = self.delay;
 		$.ajax({
 	        type: "GET",
 	        url: url,        
 	        dataType: "jsonp",
 	        beforeSend: function(){
-	        	if(loader){
-	            	$("#loader").show();
-	            }
+	        	if(loader) $("#loader").show();
 	        },
 	        success: function(data){
 	            var limit = data.entries.length;
@@ -94,8 +107,11 @@ var Slideshow = {
 	            }
 	        },
 	        complete: function(){
-	            if(loader){
-	            	$("#loader").hide();
+	            if(loader) $("#loader").hide();
+	            if(!autostart) $(".start-button").show();
+	            else {
+	            	$(".thumbs-list .list-item:first").click();
+					if(delay) setTimeout(self.slideshow_autoplay, delay);
 	            }
 	        }
 	    });
@@ -174,16 +190,22 @@ var Slideshow = {
 		var target = $(".active-img");
 	    if(!self.animated) {
 	        $(".slide.next").html('<img class="slide-img" src="'+url+'" alt="'+alt+'" />');
-	        $(".slide.next").animate({"opacity" : 1}, 500, function(){
+	        $(".slide-img").load(function() {
+				$(".slide.next").animate({"opacity" : 1}, 500, function(){
 	                $(this).addClass("current").removeClass("next");
+	                if(self.delay) setTimeout(self.slideshow_autoplay, self.delay);
 	            });
-	        $(".slide.current").animate({"opacity" : 0}, 500, function(){
+	       		$(".slide.current").animate({"opacity" : 0}, 500, function(){
 	                $(this).empty().removeClass("current").addClass("next");
 	                self.nav_timeout = true;
 	            });
-			
+			});
+	        
 	    } else {
-	         
+	        
 	    }
+	},
+	slideshow_autoplay: function(){
+		$(".nav-right").click();
 	}
 }
