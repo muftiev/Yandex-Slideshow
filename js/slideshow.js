@@ -6,8 +6,8 @@ jQuery(document).ready(function(){
 		thumb_size: 75,
 		thumb_hide: true,
 		animated: false,
-		autostart: false,
-		delay: 0
+		autostart: true,
+		delay: 5000
 	});
 	
 });
@@ -72,6 +72,10 @@ var Slideshow = {
 				if(this.delay) setTimeout(self.slideshow_autoplay, self.delay);
 			}); 
 		}
+		$(document).on("click", ".fullsize", function(event) {
+			var html = $(".slide-img-wrap").html();
+			self.fullscreen(html);
+		}); 
 	},
 	build_url: function(){
 		var username = this.username;
@@ -103,7 +107,7 @@ var Slideshow = {
 	            self.img_count = data.imageCount;
 	            for(var i=0; i<limit; i++){ 
 	                var data_next = (i==limit-1 ? 'data-next="'+data.links.next+'"' : '');
-	                $(".thumbs-list").prepend('<li class="list-item"><a href="#?imgId='+data.entries[i].updated+'" class="list-item-link"><img class="list-item-img" style="max-width: '+thumb_size+'px" data-upd="'+data.entries[i].updated+'" data-L-src="'+data.entries[i].img.L.href+'" '+data_next+' src="'+data.entries[i].img.XXS.href+'" alt="'+data.entries[i].title+'" /></li>');
+	                $(".thumbs-list").prepend('<li class="list-item"><a href="#?imgId='+data.entries[i].updated+'" class="list-item-link"><img class="list-item-img" style="max-width: '+thumb_size+'px" data-upd="'+data.entries[i].updated+'" data-L-src="'+data.entries[i].img.orig.href+'" '+data_next+' src="'+data.entries[i].img.XXS.href+'" alt="'+data.entries[i].title+'" /></li>');
 	            }
 	        },
 	        complete: function(){
@@ -163,10 +167,10 @@ var Slideshow = {
 			$(document).on("click", ".nav", function(event){
 				if(self.nav_timeout){
 					var activeIndex = $(".thumbs-list .list-item").index($(".thumbs-list .active"));
-					if($(this).hasClass("nav-left")) $(".thumbs-list .list-item").eq(activeIndex-1).click();
-					if($(this).hasClass("nav-right")) $(".thumbs-list .list-item").eq(activeIndex+1).click();
+					if($(this).hasClass("nav-left") && (activeIndex-1>=0)) $(".thumbs-list .list-item").eq(activeIndex-1).click();
+					if($(this).hasClass("nav-right") && (activeIndex+1<$(".thumbs-list .list-item").size())) $(".thumbs-list .list-item").eq(activeIndex+1).click();
 					self.nav_timeout = false;
-					if(activeIndex == $(".thumbs-list .list-item").size()-1) self.nav_timeout = true;														
+					if((activeIndex == $(".thumbs-list .list-item").size()-1) || (activeIndex==0)) setTimeout(function(){self.nav_timeout = true}, 1000);													
 				}
 			});
 		} 
@@ -188,17 +192,18 @@ var Slideshow = {
 	show_slide: function(url, alt){
 		var self = this;
 		var target = $(".active-img");
+		var wrapper = (self.fullsize_enabled) ? $(".modal-photo-galery") : $(".slideshow-wrap");
 	    if(!self.animated) {
-	        $(".slide.next").html('<img class="slide-img" src="'+url+'" alt="'+alt+'" />');
-	        $(".slide-img").load(function() {
-				$(".slide.next").animate({"opacity" : 1}, 500, function(){
+	        $(wrapper).find(".slide.next").html('<img class="slide-img" src="'+url+'" alt="'+alt+'" />');
+	        $(wrapper).find(".slide-img").load(function() {
+				$(wrapper).find(".slide.next").animate({"opacity" : 1}, 500, function(){
 	                $(this).addClass("current").removeClass("next");
 	                if(self.delay) setTimeout(self.slideshow_autoplay, self.delay);
 	            });
-	       		$(".slide.current").animate({"opacity" : 0}, 500, function(){
+	       		$(wrapper).find(".slide.current").animate({"opacity" : 0}, 500, function(){
 	                $(this).empty().removeClass("current").addClass("next");
-	                self.nav_timeout = true;
 	            });
+	            setTimeout(function(){self.nav_timeout = true}, 1000);
 			});
 	        
 	    } else {
@@ -207,5 +212,35 @@ var Slideshow = {
 	},
 	slideshow_autoplay: function(){
 		$(".nav-right").click();
+	},
+	fullscreen: function(html){
+		var self = this;
+		self.fullsize_enabled = true;
+		html = '<div class="slide-img-wrap">'+html+'</div>';
+		var $m = $('body').modal(),
+        api = $m.data('modal');
+        api.opts.wrapperClass = 'modal-photo-galery';
+        api.opts.width = '100%';
+        api.opts.height = '100%';
+        api.opts.maxWidth = '100%',
+        api.opts.maxHeight = '100%',
+        api.opts.closeText = '';
+        api.opts.fixed = true;
+        api.open(html);
+        $(document).on("keydown", function(event){
+			switch(event.keyCode){
+				case 32:
+					$(".nav-right").click();
+					break;
+				case 27:
+					$(".modal-close").click();
+					self.fullsize_enabled = false;
+					$(".thumbs-list .active").click();
+					break;
+			}
+		});
+		$(document).on("click", ".modal-photo-galery .current", function(event){
+			$(".nav-right").click();
+		});
 	}
 }
