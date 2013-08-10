@@ -73,6 +73,7 @@
 	height: 100%;
 	position: relative;
 	text-align: center;
+	overflow: hidden;
 }
 
 .slide-img-wrap {
