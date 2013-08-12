@@ -17,9 +17,9 @@ jQuery(document).ready(function(){
 		thumb_hide: true,
 		animated: false,
 		autostart: false,
-		delay: 1000,
+		delay: 3000,
 		album: "356243",
-		fullsize: false,
+		fullsize: true,
 	});
 	
 });
@@ -79,13 +79,14 @@ var Slideshow = {
 			$(self.wrapper).find(".start-button").on("click", function(event) {
 				$(this).remove();
 				$(self.wrapper).find(".thumbs-list .list-item:first").click();
-				if(self.delay) setTimeout(self.slideshow_autoplay(self), self.delay);
+				if(self.delay) setTimeout(function() { self.slideshow_autoplay() }, self.delay);
 			}); 
 		}
 		$(self.wrapper).find(".fullsize").on("click", function(event) {
 			var html = $(self.wrapper).find(".slide-img-wrap").html();
 			self.fullscreen(html);
 		}); 
+		self.delay = (self.delay && self.delay<1000) ? 1000 : self.delay;
 	},
 	build_url: function(){
 		var username = this.username;
@@ -126,7 +127,7 @@ var Slideshow = {
 	            if(!autostart) $(self.wrapper).find(".start-button").show();
 	            else {
 	            	$(self.wrapper).find(".thumbs-list .list-item:first").click();
-					if(delay) setTimeout(self.slideshow_autoplay(self), delay);
+					if(delay) setTimeout(function() { self.slideshow_autoplay() }, self.delay);
 	            }	            
 	        }
 	    });
@@ -200,7 +201,7 @@ var Slideshow = {
 		        $(wrapper).find(".slide-img").load(function() {
 					$(wrapper).find(".slide.next").animate({"opacity" : 1}, 500, function(){
 		                $(this).addClass("current").removeClass("next");
-		                if(self.delay) setTimeout(self.slideshow_autoplay(self), self.delay);
+		                if(self.delay) setTimeout(function() { self.slideshow_autoplay() }, self.delay);
 		            });
 		       		$(wrapper).find(".slide.current").animate({"opacity" : 0}, 500, function(){
 		                $(this).empty().removeClass("current").addClass("next");
@@ -221,7 +222,7 @@ var Slideshow = {
 		        	$(wrapper).find(".slide.next .slide-img").load(function() {
 		        		$(wrapper).find(".slide.next").animate({"top" : 0}, 500, function(){
 			                $(this).addClass("current").removeClass("next");
-			                if(self.delay) setTimeout(self.slideshow_autoplay(self), self.delay);
+			                if(self.delay) setTimeout(function() { self.slideshow_autoplay() }, self.delay);
 			            });
 			       		$(wrapper).find(".slide.current").animate({"top" : -offset}, 500, function(){
 			                $(this).empty().removeClass("current").addClass("next");
@@ -234,7 +235,7 @@ var Slideshow = {
 		        	$(wrapper).find(".slide.next .slide-img").load(function() {
 		        		$(wrapper).find(".slide.next").animate({"top" : 0}, 500, function(){
 			                $(this).addClass("current").removeClass("next");
-			                if(self.delay) setTimeout(self.slideshow_autoplay(self), self.delay);
+			                if(self.delay) setTimeout(function() { self.slideshow_autoplay() }, self.delay);
 			            });
 			       		$(wrapper).find(".slide.current").animate({"top" : offset}, 500, function(){
 			                $(this).empty().removeClass("current").addClass("next");
@@ -245,8 +246,8 @@ var Slideshow = {
 	        } 
 	    }
 	},
-	slideshow_autoplay: function(self){
-		$(self.wrapper).find(".nav-right").click();
+	slideshow_autoplay: function(){
+		$(this.wrapper).find(".nav-right").click();
 	},
 	fullscreen: function(html){
 		var self = this;
@@ -269,9 +270,10 @@ var Slideshow = {
 						$(self.wrapper).find(".nav-right").click();
 						break;
 					case 27:
-						$(".modal-close").click();
 						self.fullsize_enabled = false;
+						self.nav_timeout = true;
 						$(self.wrapper).find(".thumbs-list .active").click();
+						$(".modal-close").click();
 						break;
 					case 39:
 						$(self.wrapper).find(".nav-right").click();
