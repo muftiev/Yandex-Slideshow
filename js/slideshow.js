@@ -111,7 +111,7 @@ var Slideshow = {
 	        url: url,        
 	        dataType: "jsonp",
 	        beforeSend: function(){
-	        	if(loader) $("#loader").show();
+	        	if(loader) $(self.wrapper).find("#loader").show();
 	        },
 	        success: function(data){
 	            var limit = data.entries.length;
