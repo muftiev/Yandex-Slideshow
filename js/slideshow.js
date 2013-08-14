@@ -124,7 +124,7 @@ var Slideshow = {
 	            for(var i=0; i<limit; i++){ 
 	                var data_next = 'data-next="'+data.links.next+'"';
 	                data_next = (data_next === undefined)? "" : data_next;
-	                $(self.wrapper).find(".thumbs-list").append('<li class="list-item"><a href="" class="list-item-link"><img class="list-item-img" style="max-width: '+thumb_size+'px" data-L-src="'+data.entries[i].img.orig.href+'" '+data_next+' src="'+data.entries[i].img.XXS.href+'" alt="'+data.entries[i].title+'" /></li>');
+	                $(self.wrapper).find(".thumbs-list").append('<li class="list-item"><a href="#" class="list-item-link"><img class="list-item-img" style="max-width: '+thumb_size+'px" data-L-src="'+data.entries[i].img.orig.href+'" '+data_next+' src="'+data.entries[i].img.XXS.href+'" alt="'+data.entries[i].title+'" /></li>');
 	            }
 	        },
 	        complete: function(){
