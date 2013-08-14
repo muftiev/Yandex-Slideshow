@@ -7,13 +7,13 @@ jQuery(document).ready(function(){
 		thumb_hide: true,
 		animated: true,
 		autostart: true,
-		delay: 1000
+		delay: 0
 	});
 
 	$("#slideshow2").slideshow({
 		width: 500,
 		height: 350,
-		thumb_size: 75,
+		thumb_size: 50,
 		thumb_hide: true,
 		animated: false,
 		autostart: false,
@@ -51,6 +51,8 @@ var Slideshow = {
 	username: "muftiev-rr",
 	album: "357412",
 	img_count: 0,
+	next_img: false,
+	scroll_lock: false,
 
 	init: function(options){
 		for (var prop in options) {
@@ -94,18 +96,21 @@ var Slideshow = {
 		var password = this.password;
 		this.url = (username.length)? "http://api-fotki.yandex.ru/api/users/"+username : this.url;
 		this.url += (album.length)? "/album/"+album : "";
-		this.url += "/photos/?format=json";
+		this.url += "/photos/rupdated/?format=json";
 	},
 	thumbs_load: function(){
 		var self = this;
-		var url = self.url;
-		var limit = (self.img_count)? self.img_count - $(self.wrapper).find(".thumbs-list").find(".list-item").length : 30;
-		limit = (limit>30)? 30 : limit;
-		url += "&limit="+limit;
+		var url = (self.next_img)? self.next_img : self.url;
+		var max_limit = Math.round(self.height*2/self.thumb_size);
+		var limit = (self.img_count)? self.img_count - $(self.wrapper).find(".thumbs-list").find(".list-item").length : max_limit;
+		limit = (limit>max_limit)? max_limit : limit;
+		url += (self.next_img)? "" : "&limit="+limit;
 		var loader = self.loader;
 		var thumb_size = self.thumb_size;
 		var autostart = self.autostart;
 		var delay = self.delay;
+		var first_load = (self.next_img)? false : true;
+		self.scroll_lock = true;
 		$.ajax({
 	        type: "GET",
 	        url: url,        
@@ -117,36 +122,45 @@ var Slideshow = {
 	            var limit = data.entries.length;
 	            self.img_count = data.imageCount;
 	            for(var i=0; i<limit; i++){ 
-	                var data_next = (i==limit-1 ? 'data-next="'+data.links.next+'"' : '');
-	                $(self.wrapper).find(".thumbs-list").prepend('<li class="list-item"><a href="#?imgId='+data.entries[i].updated+'" class="list-item-link"><img class="list-item-img" style="max-width: '+thumb_size+'px" data-upd="'+data.entries[i].updated+'" data-L-src="'+data.entries[i].img.orig.href+'" '+data_next+' src="'+data.entries[i].img.XXS.href+'" alt="'+data.entries[i].title+'" /></li>');
+	                var data_next = 'data-next="'+data.links.next+'"';
+	                data_next = (data_next === undefined)? "" : data_next;
+	                $(self.wrapper).find(".thumbs-list").append('<li class="list-item"><a href="" class="list-item-link"><img class="list-item-img" style="max-width: '+thumb_size+'px" data-L-src="'+data.entries[i].img.orig.href+'" '+data_next+' src="'+data.entries[i].img.XXS.href+'" alt="'+data.entries[i].title+'" /></li>');
 	            }
 	        },
 	        complete: function(){
-	        	self.navigate();
-	            if(loader) $(self.wrapper).find("#loader").hide();
-	            if(!autostart) $(self.wrapper).find(".start-button").show();
-	            else {
-	            	$(self.wrapper).find(".thumbs-list .list-item:first").click();
-					if(delay) setTimeout(function() { self.slideshow_autoplay() }, self.delay);
-	            }	            
+	        	if(first_load) {
+	        		self.navigate();
+		            if(loader) $(self.wrapper).find("#loader").hide();
+		            if(!autostart) $(self.wrapper).find(".start-button").show();
+		            else {
+		            	$(self.wrapper).find(".thumbs-list .list-item:first").click();
+						if(delay) setTimeout(function() { self.slideshow_autoplay() }, self.delay);
+		            }
+	        	}
+	        	self.scroll_lock = false;	        		        		            
 	        }
 	    });
 	},
 	thumbs_mousewheel: function(target){
 		var self = this;
 		target.mousewheel(function(event, delta, height){
-			var position = parseInt($(this).css("top"));
-	        var height = parseInt($(this).height()) - parseInt($(this).parent().height());
-	        if(height>0){
-		        var slide = parseInt($(this).parent().outerHeight())*0.8;
-		        if(position+slide*delta>0) slide = 0-position;
-		        if(position+slide*delta<-height) slide = height+position;
-		        if((position+slide*delta*2<-height) && (position+slide*delta>-height) && ($(self.wrapper).find(".thumbs-list").find(".list-item").length<self.img_count)) {
-		            var next = $(this).children().last().find("img").attr("data-next");
-		            if(next!=="undefined") self.thumbs_load(next);
-		        }
-		        $(this).stop().animate({"top" : position+slide*delta}, 500);
-		    }
+			if(!self.scroll_lock){
+				var position = parseInt($(this).css("top"));
+		        var height = parseInt($(this).height()) - parseInt($(this).parent().height());
+		        if(height>0){
+			        var slide = parseInt($(this).parent().outerHeight())*0.6;
+			        if(position+slide*delta>0) slide = 0-position;
+			        if(position+slide*delta<-height) slide = height+position;
+			        if((position+slide*delta*2<-height) && (position+slide*delta>-height) && ($(self.wraper).find(".thumbs-list").find(".list-item").length<self.img_count)) {
+			        	if($(this).children().length<self.img_count){
+			        		var next = $(this).children().last().find("img").attr("data-next");
+				            if(next!=="undefined") self.next_img = next;
+				            self.thumbs_load();
+			        	}		            
+			        }
+			        $(this).stop().animate({"top" : position+slide*delta}, 500);
+			    }	
+			}			
 		});		
 	},
 	thumbs_scroll: function(target){
