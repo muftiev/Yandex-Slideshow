@@ -6,7 +6,7 @@ jQuery(document).ready(function(){
 		thumb_size: 75,
 		thumb_hide: true,
 		animated: true,
-		autostart: true,
+		autostart: false,
 		delay: 0
 	});
 
@@ -14,9 +14,9 @@ jQuery(document).ready(function(){
 		width: 500,
 		height: 350,
 		thumb_size: 50,
-		thumb_hide: true,
+		thumb_hide: false,
 		animated: false,
-		autostart: false,
+		autostart: true,
 		delay: 3000,
 		album: "356243",
 		fullsize: true,
@@ -116,20 +116,20 @@ var Slideshow = {
 	        url: url,        
 	        dataType: "jsonp",
 	        beforeSend: function(){
-	        	if(loader) $(self.wrapper).find("#loader").show();
+	        	if(loader && first_load) $(self.wrapper).find("#loader").show();
 	        },
 	        success: function(data){
 	            var limit = data.entries.length;
 	            self.img_count = data.imageCount;
 	            for(var i=0; i<limit; i++){ 
-	                var data_next = 'data-next="'+data.links.next+'"';
-	                data_next = (data_next === undefined)? "" : data_next;
-	                $(self.wrapper).find(".thumbs-list").append('<li class="list-item"><a href="#" class="list-item-link"><img class="list-item-img" style="max-width: '+thumb_size+'px" data-L-src="'+data.entries[i].img.orig.href+'" '+data_next+' src="'+data.entries[i].img.XXS.href+'" alt="'+data.entries[i].title+'" /></li>');
+	                var data_next = data.links.next;
+	                self.next_img = (data_next === undefined)? false : data_next;
+	                $(self.wrapper).find(".thumbs-list").append('<li class="list-item"><a href="#" class="list-item-link"><img class="list-item-img" style="max-width: '+thumb_size+'px" data-L-src="'+data.entries[i].img.orig.href+'" src="'+data.entries[i].img.XXS.href+'" alt="'+data.entries[i].title+'" /></li>');
 	            }
 	        },
 	        complete: function(){
-	        	if(first_load) {
-	        		self.navigate();
+	        	self.navigate();
+	        	if(first_load) {	        		
 		            if(loader) $(self.wrapper).find("#loader").hide();
 		            if(!autostart) $(self.wrapper).find(".start-button").show();
 		            else {
@@ -152,11 +152,7 @@ var Slideshow = {
 			        if(position+slide*delta>0) slide = 0-position;
 			        if(position+slide*delta<-height) slide = height+position;
 			        if((position+slide*delta*2<-height) && (position+slide*delta>-height) && ($(self.wraper).find(".thumbs-list").find(".list-item").length<self.img_count)) {
-			        	if($(this).children().length<self.img_count){
-			        		var next = $(this).children().last().find("img").attr("data-next");
-				            if(next!=="undefined") self.next_img = next;
-				            self.thumbs_load();
-			        	}		            
+			        	if(($(this).children().length<self.img_count) && (self.next_img!=false)) self.thumbs_load();
 			        }
 			        $(this).stop().animate({"top" : position+slide*delta}, 500);
 			    }	
@@ -170,6 +166,9 @@ var Slideshow = {
 	    var prev_index = $(self.wrapper).find(".thumbs-list .list-item").index(prev_elem);
 	    $(target).addClass("active");
 	    var index = $(self.wrapper).find(".thumbs-list .list-item").index(target);
+	    if($(self.wrapper).find(".thumbs-list .list-item").length-index<Math.round(self.height/self.thumb_size)){
+	    	if(self.next_img!=false) self.thumbs_load();
+	    }
 	    var li_height = $(self.wrapper).find(".list-item").outerHeight()+parseInt($(self.wrapper).find(".list-item").css("margin-top"))+parseInt($(self.wrapper).find(".list-item").css("margin-bottom"));
 	    var ul_height = $(self.wrapper).find(".thumbs-list li").length * li_height;
 	    var wrapper_height = $(self.wrapper).find(".thumbs-list").parent().outerHeight();
