@@ -1,29 +1,3 @@
-jQuery(document).ready(function(){
-
-	$("#slideshow1").slideshow({
-		width: 500,
-		height: 350,
-		thumb_size: 75,
-		thumb_hide: true,
-		animated: true,
-		autostart: false,
-		delay: 0
-	});
-
-	$("#slideshow2").slideshow({
-		width: 500,
-		height: 350,
-		thumb_size: 50,
-		thumb_hide: false,
-		animated: false,
-		autostart: true,
-		delay: 3000,
-		album: "356243",
-		fullsize: true,
-	});
-	
-});
-
 jQuery.fn.slideshow = function(options) {
 	Slideshowobject = inherit(Slideshow)
 	Slideshowobject.init(options);
@@ -42,8 +16,8 @@ var Slideshow = {
 	width: 500,
 	height: 450,
 	animated: true,
-	autostart: true,
-	delay: 1000,
+	autostart: false,
+	delay: 0,
 	thumb_size: 50,
 	thumb_hide: true,
 	fullsize: true,

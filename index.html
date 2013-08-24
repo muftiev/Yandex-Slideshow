@@ -7,7 +7,34 @@
 		<script type="text/javascript" src="js/jquery.min.js"></script>
 		<script type="text/JavaScript" src="js/jquery.mousewheel.min.js"></script>
 		<script type="text/JavaScript" src="js/modal.min.js"></script>
-		<script type="text/javascript" src="js/slideshow.js"></script>		
+		<script type="text/javascript" src="js/slideshow.js"></script>
+		<script>
+			jQuery(document).ready(function(){
+
+				$("#slideshow1").slideshow({
+					width: 500,
+					height: 350,
+					thumb_size: 75,
+					thumb_hide: true,
+					animated: true,
+					autostart: false,
+					delay: 0
+				});
+
+				$("#slideshow2").slideshow({
+					width: 500,
+					height: 350,
+					thumb_size: 50,
+					thumb_hide: false,
+					animated: false,
+					autostart: true,
+					delay: 3000,
+					album: "356243",
+					fullsize: true,
+				});
+				
+			});
+		</script>
 	</head>
 	<body> 					
 		<div id="slideshow1" style="float: left;"></div>
