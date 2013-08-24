@@ -240,6 +240,7 @@ var Slideshow = {
 			var img_count = self.img_count,
 				next_img = self.next_img;
 
+			delta = delta/Math.abs(delta);
 			if(!self.scroll_lock){
 				var position = parseInt($(this).css("top")),
 		        	height = parseInt($(this).height()) - parseInt($(this).parent().height());
