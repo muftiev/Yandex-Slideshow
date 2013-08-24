@@ -120,7 +120,7 @@ var Slideshow = {
 				.appendTo(start_button);
 			$(start_button).on("click", function(event) {
 				$(this).remove();
-				wrapper.find(".thumbs-list .list-item:first").click();
+				thumbs_list.find(".list-item:first").click();
 				if(delay) setTimeout(function() { self.slideshow_autoplay() }, delay);
 			}); 
 		}
@@ -150,7 +150,7 @@ var Slideshow = {
 			thumb_size = self.thumb_size,
 			max_limit = Math.round(self.height*2/thumb_size),
 			img_count = self.img_count,
-			limit = (img_count)? img_count - $(thumbs_list).find(".list-item").length : max_limit,
+			limit = (img_count)? img_count - thumbs_list.find(".list-item").length : max_limit,
 			loader = self.loader,
 			loader_elem = wrapper.find("#loader"),
 			thumb_size = self.thumb_size,
@@ -166,7 +166,7 @@ var Slideshow = {
 	        url: url,        
 	        dataType: "jsonp",
 	        beforeSend: function(){
-	        	if(loader && first_load) $(loader_elem).show();
+	        	if(loader && first_load) loader_elem.show();
 	        },
 	        success: function(data){
 	            var limit = data.entries.length;
@@ -195,10 +195,10 @@ var Slideshow = {
 	        complete: function(){
 	        	self.navigate();
 	        	if(first_load) {	        		
-		            if(loader) $(loader_elem).hide();
+		            if(loader) loader_elem.hide();
 		            if(!autostart) wrapper.find(".start-button").show();
 		            else {
-		            	$(thumbs_list).find(".list-item:first").click();
+		            	thumbs_list.find(".list-item:first").click();
 						if(delay) setTimeout(function() { self.slideshow_autoplay() }, delay);
 		            }
 	        	}
@@ -235,34 +235,32 @@ var Slideshow = {
 		var self = this,
 			wrapper = self.wrapper,
 			thumbs_list = wrapper.find(".thumbs-list"),
-			list_item = $(thumbs_list).find(".list-item"),
-			prev_elem = $(thumbs_list).find(".active"),
-			prev_index = $(list_item).index(prev_elem),
-			index = $(list_item).index(target),
-			li_height = $(list_item).outerHeight()+parseInt($(list_item).css("margin-top"))+parseInt($(list_item).css("margin-bottom")),
-		    ul_height = $(list_item).length * li_height,
-		    wrapper_height = $(thumbs_list).parent().outerHeight(),
+			list_item = thumbs_list.find(".list-item"),
+			prev_elem = thumbs_list.find(".active"),
+			prev_index = list_item.index(prev_elem),
+			index = list_item.index(target),
+			li_height = list_item.outerHeight()+parseInt(list_item.css("margin-top"))+parseInt(list_item.css("margin-bottom")),
+		    ul_height = list_item.length * li_height,
+		    wrapper_height = thumbs_list.parent().outerHeight(),
 		    slide = Math.round((index+1)*li_height-wrapper_height/2-li_height/2);
 
 	    prev_elem.removeClass("active");
 	    $(target).addClass("active");
-	    if($(list_item).length-index<Math.round(self.height/self.thumb_size)){
+	    if(list_item.length-index<Math.round(self.height/self.thumb_size)){
 	    	if(self.next_img!=false) self.thumbs_load();
 	    }	    
-	    if(slide>0 && slide<ul_height-wrapper_height) $(thumbs_list).animate({"top" : -slide}, 500);
-	    else if(slide<ul_height-wrapper_height) $(thumbs_list).animate({"top" : 0}, 500);
-	    else $(thumbs_list).animate({"top" : -(ul_height-wrapper_height)}, 500);
+	    if(slide>0 && slide<ul_height-wrapper_height) thumbs_list.animate({"top" : -slide}, 500);
+	    else if(slide<ul_height-wrapper_height) thumbs_list.animate({"top" : 0}, 500);
+	    else thumbs_list.animate({"top" : -(ul_height-wrapper_height)}, 500);
 
 	    return (prev_index>=0) ? index-prev_index : 0;
 	},
 	navigate: function(){
 		var self = this,
-			wrapper = self.wrapper,
-			thumbs_list = wrapper.find(".thumbs-list"),
-			list_item = $(thumbs_list).find(".list-item");
+			wrapper = self.wrapper;			
 
 		self.nav_timeout = true;
-		$(list_item).on("click", function(event){
+		wrapper.find(".thumbs-list .list-item").on("click", function(event){
 			if(self.nav_timeout){
 				self.nav_timeout = false;
 				var direction = self.thumbs_scroll(this);
@@ -272,12 +270,15 @@ var Slideshow = {
 	       	}
 		}); 
 		wrapper.find(".nav").on("click", function(event){
+			var thumbs_list = wrapper.find(".thumbs-list"),
+				list_item = thumbs_list.find(".list-item");
+
 			if(self.nav_timeout){
-				var activeIndex = $(list_item).index($(thumbs_list).find(".active"));
-				if($(this).hasClass("nav-left") && (activeIndex-1>=0)) $(list_item).eq(activeIndex-1).click();
-				if($(this).hasClass("nav-right") && (activeIndex+1<$(list_item).size())) $(list_item).eq(activeIndex+1).click();
+				var activeIndex = list_item.index(thumbs_list.find(".active"));
+				if($(this).hasClass("nav-left") && (activeIndex-1>=0)) list_item.eq(activeIndex-1).click();
+				if($(this).hasClass("nav-right") && (activeIndex+1<list_item.size())) list_item.eq(activeIndex+1).click();
 				self.nav_timeout = false;
-				if((activeIndex == $(list_item).size()-1) || (activeIndex==0)) setTimeout(function(){self.nav_timeout = true}, 1000);													
+				if((activeIndex == list_item.size()-1) || (activeIndex==0)) setTimeout(function(){self.nav_timeout = true}, 1000);													
 			}
 		});
 	},
@@ -299,14 +300,10 @@ var Slideshow = {
 
 	    if(!self.animated) {
 	       	if(!direction) {
-	    		//wrapper.find(".slide.current").html('<img class="slide-img" src="'+url+'" alt="'+alt+'" />');
-	    		
-	    		wrapper.find(".slide.current").append(slide_img);
+	    		slide_current.html(slide_img);
 	        	setTimeout(function(){self.nav_timeout = true}, 1000);
 	    	} else {
-		        //wrapper.find(".slide.next").html('<img id="srcimg" class="slide-img" src="'+url+'" alt="'+alt+'" />');
-
-		       	slide_next.append(slide_img);
+		        slide_next.html(slide_img);
 		       	slide_img.load(function() {
 					slide_next.animate({"opacity" : 1}, 500, function(){
 		                $(this).addClass("current").removeClass("next");
@@ -375,7 +372,7 @@ var Slideshow = {
         api.opts.closeText = '';
         api.opts.fixed = true;
         self.fullsize_enabled = true;
-		slide = $("<div/>")//'<div class="slide-img-wrap">'+html+'</div>';
+		slide = $("<div/>")
 			.addClass("slide-img-wrap")
 			.append(html);
 
