@@ -137,7 +137,8 @@ var Slideshow = {
 	       			alt = start_elem.find("img").attr("alt");
 
 	       		start_elem.addClass("active");
-	       		self.show_slide(url, alt, 0); 		
+	       		self.show_slide(url, alt, 0);
+	       		self.toggle_arrows();	       		
 				if(delay) self.autoplay_intID = setInterval(function(){ self.slideshow_autoplay() }, delay);
 			}); 
 		}
@@ -148,7 +149,6 @@ var Slideshow = {
 		}); 
 		
 	},
-
 	build_url: function(){
 		var username = this.username,
 			album = this.album,
@@ -222,8 +222,10 @@ var Slideshow = {
 							url = start_elem.find("img").attr("data-l-src"),
 			       			alt = start_elem.find("img").attr("alt");
 
+			       		
 			       		start_elem.addClass("active");
-			       		self.show_slide(url, alt, 0); 		
+			       		self.show_slide(url, alt, 0);
+			       		self.toggle_arrows();	       		
 						if(delay) self.autoplay_intID = setInterval(function(){ self.slideshow_autoplay() }, delay);
 		            }
 	        	}
@@ -299,6 +301,7 @@ var Slideshow = {
 	       			alt = $(this).find("img").attr("alt");
 
 	       		self.show_slide(url, alt, direction);
+	       		self.toggle_arrows();
 			}
 		}); 
 		wrapper.find(".nav").on("click", function(event){
@@ -309,6 +312,18 @@ var Slideshow = {
 			if($(this).hasClass("nav-left") && (activeIndex-1>=0)) list_item.eq(activeIndex-1).click();
 			if($(this).hasClass("nav-right") && (activeIndex+1<list_item.size())) list_item.eq(activeIndex+1).click();
 		});
+	},
+	toggle_arrows: function(){
+		var self = this,
+			wrapper = self.wrapper,
+			thumbs_list = wrapper.find(".thumbs-list"),
+			activeIndex = thumbs_list.find(".list-item").index(thumbs_list.find(".active"));
+
+		if(!activeIndex || activeIndex == self.img_count-1) {
+			(!activeIndex)? wrapper.find(".nav-left").animate({"opacity" : 0}, 200) : wrapper.find(".nav-right").animate({"opacity" : 0}, 200);
+		} else {
+			wrapper.find(".nav").animate({"opacity" : 1}, 200);
+		}
 	},
 	show_slide: function(url, alt, direction){
 		var self = this,
@@ -406,6 +421,7 @@ var Slideshow = {
 					url = next.find("img").attr("data-l-src"),
 	       			alt = next.find("img").attr("alt");		       			
 	       		self.show_slide(url, alt, direction);
+	       		self.toggle_arrows();
 			}
 		} else {
 			clearInterval(self.autoplay_intID);
