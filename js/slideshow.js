@@ -17,11 +17,11 @@ var Slideshow = {
 	height: 450,
 	animated: true,
 	autostart: false,
-	delay: 0,
+	delay: 0,				
 	thumb_size: 50,
-	thumb_hide: true,
+	thumb_hide: true,		
 	fullsize: true,
-	loader: true,
+	loader: true,			
 	username: "muftiev-rr",
 	album: "357412",
 	img_count: 0,
@@ -44,7 +44,7 @@ var Slideshow = {
 			slide_wrap_size = (thumb_hide)? width : width-thumbs_wrap_size,
 			delay = self.delay;
 
-		delay = (delay && delay<1000) ? 1000 : delay;
+		delay = (delay && delay<1000) ? 1000 : delay;	
 		self.delay = delay;
 		self.wrapper = wrapper;
 
@@ -61,6 +61,7 @@ var Slideshow = {
 				"width" : thumbs_wrap_size,
 				"height" : height
 			}).appendTo(slideshow_wrap);
+
 		var thumbs_list = $("<ul/>")
 			.addClass("thumbs-list")
 			.css({
@@ -73,28 +74,36 @@ var Slideshow = {
 			.addClass("slide-wrap")
 			.css("width", slide_wrap_size)
 			.prependTo(slideshow_wrap);
+
 		var slide_img_wrap = $("<div/>")
 			.addClass("slide-img-wrap")
 			.appendTo(slide_wrap);
+
 		$("<div/>")
 			.addClass("slide current")
 			.appendTo(slide_img_wrap);
+
 		$("<div/>")
 			.addClass("slide next")
 			.appendTo(slide_img_wrap);
+
 		var nav_wrap = $("<div/>")
 			.addClass("nav-wrap hidden")
 			.appendTo(slide_wrap);
+
 		$("<a/>")
 			.addClass("nav nav-left")
 			.appendTo(nav_wrap);
+
 		$("<a/>")
 			.addClass("nav nav-right")
 			.appendTo(nav_wrap);
+
 		if(self.fullsize){
 			var fullsize = $("<a/>")
 				.addClass("fullsize")
 				.appendTo(slide_wrap);
+
 			$("<img/>")
 				.attr("src", "img/fullscreen.png")
 				.attr("alt", "fullsize")
@@ -104,6 +113,7 @@ var Slideshow = {
 			var loader = $("<div/>")
 				.attr("id", "loader")
 				.appendTo(slide_wrap);
+
 			$("<img/>")
 				.attr("src", "img/load.gif")
 				.attr("alt", "loading")
@@ -114,22 +124,31 @@ var Slideshow = {
 			var start_button = $("<div/>")
 				.addClass("start-button")
 				.appendTo(slideshow_wrap);
+
 			$("<img/>")
 				.attr("src", "img/play.png")
 				.attr("alt", "play")
 				.appendTo(start_button);
-			$(start_button).on("click", function(event) {
+
+			$(start_button).on("click", function(event) {	
 				$(this).remove();
-				thumbs_list.find(".list-item:first").click();
-				if(delay) setTimeout(function() { self.slideshow_autoplay() }, delay);
+				var start_elem = thumbs_list.find(".list-item:first"),
+					url = start_elem.find("img").attr("data-l-src"),
+	       			alt = start_elem.find("img").attr("alt");
+
+	       		start_elem.addClass("active");
+	       		self.show_slide(url, alt, 0); 		
+				if(delay) self.autoplay_intID = setInterval(function(){ self.slideshow_autoplay() }, delay);
 			}); 
 		}
-		$(fullsize).on("click", function(event) {
+		$(fullsize).on("click", function(event) {	
 			var html = $(slide_img_wrap).html();
+
 			self.fullscreen(html);
 		}); 
 		
 	},
+
 	build_url: function(){
 		var username = this.username,
 			album = this.album,
@@ -158,7 +177,7 @@ var Slideshow = {
 			delay = self.delay,
 			first_load = (next_img)? false : true;
 
-		limit = (limit>max_limit)? max_limit : limit;
+		limit = (limit>max_limit)? max_limit : limit;	
 		url += (next_img)? "" : "&limit="+limit;
 		self.scroll_lock = true;
 		$.ajax({
@@ -166,15 +185,16 @@ var Slideshow = {
 	        url: url,        
 	        dataType: "jsonp",
 	        beforeSend: function(){
-	        	if(loader && first_load) loader_elem.show();
+	        	if(loader && first_load) loader_elem.show();	
 	        },
 	        success: function(data){
 	            var limit = data.entries.length;
-	            self.img_count = data.imageCount;
-	            for(var i=0; i<limit; i++){ 
-	                var data_next = data.links.next;
 
-	                self.next_img = (data_next === undefined)? false : data_next;
+	            self.img_count = data.imageCount;	
+	            for(var i=0; i<limit; i++){ 
+	                var data_next = data.links.next;	
+
+	                self.next_img = (data_next === undefined)? false : data_next;	
 
 	                var list_item = $("<li/>")
 	                	.addClass("list-item")
@@ -195,11 +215,16 @@ var Slideshow = {
 	        complete: function(){
 	        	self.navigate();
 	        	if(first_load) {	        		
-		            if(loader) loader_elem.hide();
+		            if(loader) loader_elem.hide();		
 		            if(!autostart) wrapper.find(".start-button").show();
 		            else {
-		            	thumbs_list.find(".list-item:first").click();
-						if(delay) setTimeout(function() { self.slideshow_autoplay() }, delay);
+		            	var start_elem = thumbs_list.find(".list-item:first"),
+							url = start_elem.find("img").attr("data-l-src"),
+			       			alt = start_elem.find("img").attr("alt");
+
+			       		start_elem.addClass("active");
+			       		self.show_slide(url, alt, 0); 		
+						if(delay) self.autoplay_intID = setInterval(function(){ self.slideshow_autoplay() }, delay);
 		            }
 	        	}
 	        	self.scroll_lock = false;	        		        		            
@@ -221,6 +246,7 @@ var Slideshow = {
 
 		        if(height>0){
 			        var slide = parseInt($(this).parent().outerHeight())*0.6;
+
 			        if(position+slide*delta>0) slide = 0-position;
 			        if(position+slide*delta<-height) slide = height+position;
 			        if((position+slide*delta*2<-height) && (position+slide*delta>-height) && (wrapper.find(".thumbs-list .list-item").length<img_count)) {
@@ -257,29 +283,31 @@ var Slideshow = {
 	},
 	navigate: function(){
 		var self = this,
-			wrapper = self.wrapper;			
+			wrapper = self.wrapper,
+			delay = self.delay;			
 
-		self.nav_timeout = true;
 		wrapper.find(".thumbs-list .list-item").on("click", function(event){
-			if(self.nav_timeout){
-				self.nav_timeout = false;
-				var direction = self.thumbs_scroll(this);
-				var url = $(this).find("img").attr("data-l-src");
-	       		var alt = $(this).find("img").attr("alt");
+			var d = $.when(self.d_cur, self.d_next);
+
+			if(d.state() == "resolved"){
+				if(delay){
+					clearInterval(self.autoplay_intID);
+					self.autoplay_intID = setInterval(function(){ self.slideshow_autoplay() }, delay);
+				}				
+				var direction = self.thumbs_scroll(this),
+					url = $(this).find("img").attr("data-l-src"),
+	       			alt = $(this).find("img").attr("alt");
+
 	       		self.show_slide(url, alt, direction);
-	       	}
+			}
 		}); 
 		wrapper.find(".nav").on("click", function(event){
 			var thumbs_list = wrapper.find(".thumbs-list"),
-				list_item = thumbs_list.find(".list-item");
+				list_item = thumbs_list.find(".list-item"),
+				activeIndex = list_item.index(thumbs_list.find(".active"));
 
-			if(self.nav_timeout){
-				var activeIndex = list_item.index(thumbs_list.find(".active"));
-				if($(this).hasClass("nav-left") && (activeIndex-1>=0)) list_item.eq(activeIndex-1).click();
-				if($(this).hasClass("nav-right") && (activeIndex+1<list_item.size())) list_item.eq(activeIndex+1).click();
-				self.nav_timeout = false;
-				if((activeIndex == list_item.size()-1) || (activeIndex==0)) setTimeout(function(){self.nav_timeout = true}, 1000);													
-			}
+			if($(this).hasClass("nav-left") && (activeIndex-1>=0)) list_item.eq(activeIndex-1).click();
+			if($(this).hasClass("nav-right") && (activeIndex+1<list_item.size())) list_item.eq(activeIndex+1).click();
 		});
 	},
 	show_slide: function(url, alt, direction){
@@ -287,7 +315,8 @@ var Slideshow = {
 			wrapper = self.wrapper,
 			target = wrapper.find(".active-img"),
 			fullsize_enabled = self.fullsize_enabled,
-			delay = self.delay
+			d_cur = $.Deferred(),
+			d_next = $.Deferred();
 
 		wrapper = (fullsize_enabled) ? $(".modal-photo-galery") : wrapper.find(".slideshow-wrap");
 
@@ -299,42 +328,48 @@ var Slideshow = {
     			.addClass("slide-img");
 
 	    if(!self.animated) {
-	       	if(!direction) {
-	    		slide_current.html(slide_img);
-	        	setTimeout(function(){self.nav_timeout = true}, 1000);
+	    	if(!direction) {
+	       		slide_current.html(slide_img);
+	    		slide_img.load(function() {
+					d_cur.resolve();
+					d_next.resolve();
+				});
 	    	} else {
-		        slide_next.html(slide_img);
+	    		slide_next.html(slide_img);
 		       	slide_img.load(function() {
 					slide_next.animate({"opacity" : 1}, 500, function(){
 		                $(this).addClass("current").removeClass("next");
-		                if(delay) setTimeout(function() { self.slideshow_autoplay() }, delay);
+		                d_next.resolve();
 		            });
 		       		slide_current.animate({"opacity" : 0}, 500, function(){
 		                $(this).empty().removeClass("current").addClass("next");
+		                d_cur.resolve();
 		            });
-		            setTimeout(function(){self.nav_timeout = true}, 1000);
 				});
 			}
 	        
 	    } else {
-	        if(!direction) {
+	    	if(!direction) {
 	        	slide_current.html(slide_img);
-	        	setTimeout(function(){self.nav_timeout = true}, 1000);
+	        	slide_img.load(function() {
+					d_cur.resolve();
+					d_next.resolve();
+				});
 	        } else {
 	        	var height = self.height,
 	        	offset = (fullsize_enabled) ? $(".modal-photo-galery").height()+$(".modal-photo-galery").height()*0.1 : height+height*0.1;
-	        	if(direction>0) {		        	
-		        	slide_next.css({"top": offset, "opacity" : 1});
+	        	if(direction>0) {
+	        		slide_next.css({"top": offset, "opacity" : 1});
 		        	slide_next.html(slide_img);
 		        	slide_img.load(function() {
 		        		slide_next.animate({"top" : 0}, 500, function(){
 			                $(this).addClass("current").removeClass("next");
-			                if(delay) setTimeout(function() { self.slideshow_autoplay() }, delay);
+			                d_next.resolve();
 			            });
 			       		slide_current.animate({"top" : -offset}, 500, function(){
 			                $(this).empty().removeClass("current").addClass("next");
+			                d_cur.resolve();
 			            });
-			            setTimeout(function(){self.nav_timeout = true}, 1000);
 					});
 				} else {
 					slide_next.css({"top": -offset, "opacity" : 1});
@@ -342,19 +377,39 @@ var Slideshow = {
 		        	slide_img.load(function() {
 		        		slide_next.animate({"top" : 0}, 500, function(){
 			                $(this).addClass("current").removeClass("next");
-			                if(delay) setTimeout(function() { self.slideshow_autoplay() }, delay);
+			                d_next.resolve();
 			            });
 			       		slide_current.animate({"top" : offset}, 500, function(){
 			                $(this).empty().removeClass("current").addClass("next");
+			                d_cur.resolve();
 			            });
-			            setTimeout(function(){self.nav_timeout = true}, 1000);
 					});
 				}
 	        } 
 	    }
+	    self.d_cur = d_cur.promise();
+	    self.d_next = d_next.promise();
 	},
 	slideshow_autoplay: function(){
-		this.wrapper.find(".nav-right").click();
+		var self = this,
+			wrapper = self.wrapper,
+			thumbs_list = wrapper.find(".thumbs-list"),
+			list_item = thumbs_list.find(".list-item"),
+			activeIndex = list_item.index(thumbs_list.find(".active"));
+
+		if(activeIndex < self.img_count-1){
+			var next = list_item.eq(activeIndex+1),
+				d = $.when(self.d_cur, self.d_next);
+
+			if(d.state() == "resolved"){
+				var direction = self.thumbs_scroll(next),
+					url = next.find("img").attr("data-l-src"),
+	       			alt = next.find("img").attr("alt");		       			
+	       		self.show_slide(url, alt, direction);
+			}
+		} else {
+			clearInterval(self.autoplay_intID);
+		}
 	},
 	fullscreen: function(html){
 		var self = this,
@@ -376,24 +431,23 @@ var Slideshow = {
 			.addClass("slide-img-wrap")
 			.append(html);
 
-        api.open(slide);
+        api.open(slide);	
 
-        $(document).on("keydown", function(event){
+        $(document).on("keydown", function(event){		
         	if(self.fullsize_enabled) {
 				switch(event.keyCode){
-					case 32:
-						nav_right.click();
-						break;
-					case 27:
+					case 27: 				
 						self.fullsize_enabled = false;
-						self.nav_timeout = true;
 						wrapper.find(".thumbs-list .active").click();
 						$(".modal-close").click();
 						break;
-					case 39:
+					case 32: 				
+						nav_right.click();
+						break;					
+					case 39: 				
 						nav_right.click();
 						break;
-					case 37:
+					case 37: 				
 						nav_left.click();
 						break;
 				}
