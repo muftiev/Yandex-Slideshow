@@ -17,11 +17,11 @@ var Slideshow = {
 	height: 450,
 	animated: true,
 	autostart: false,
-	delay: 0,				
+	delay: 0,				// slides auto play time interval
 	thumb_size: 50,
-	thumb_hide: true,		
+	thumb_hide: true,		// thumbs panel hide
 	fullsize: true,
-	loader: true,			
+	loader: true,			// thumbs loading gif
 	username: "muftiev-rr",
 	album: "357412",
 	img_count: 0,
@@ -44,7 +44,7 @@ var Slideshow = {
 			slide_wrap_size = (thumb_hide)? width : width-thumbs_wrap_size,
 			delay = self.delay;
 
-		delay = (delay && delay<1000) ? 1000 : delay;	
+		delay = (delay && delay<1000) ? 1000 : delay;	// set minimum dalay 1 sec
 		self.delay = delay;
 		self.wrapper = wrapper;
 
@@ -69,7 +69,7 @@ var Slideshow = {
 				"right" : -thumb_position
 			}).appendTo(thumbs_wrap);
 
-		self.thumbs_mousewheel(thumbs_list);	
+		self.thumbs_mousewheel(thumbs_list);	// thumbs scrolling listener
 		var slide_wrap = $("<div/>")
 			.addClass("slide-wrap")
 			.css("width", slide_wrap_size)
@@ -130,7 +130,7 @@ var Slideshow = {
 				.attr("alt", "play")
 				.appendTo(start_button);
 
-			$(start_button).on("click", function(event) {	
+			$(start_button).on("click", function(event) {	// Start button listener
 				$(this).remove();
 				var start_elem = thumbs_list.find(".list-item:first"),
 					url = start_elem.find("img").attr("data-l-src"),
@@ -142,13 +142,17 @@ var Slideshow = {
 				if(delay) self.autoplay_intID = setInterval(function(){ self.slideshow_autoplay() }, delay);
 			}); 
 		}
-		$(fullsize).on("click", function(event) {	
+		$(fullsize).on("click", function(event) {	// fullsize button listener
 			var html = $(slide_img_wrap).html();
 
 			self.fullscreen(html);
 		}); 
 		
 	},
+
+	/**
+	* Build url to request slides json object
+	**/
 	build_url: function(){
 		var username = this.username,
 			album = this.album,
@@ -160,6 +164,9 @@ var Slideshow = {
 		url += "/photos/rupdated/?format=json";
 		this.url = url;
 	},
+	/**
+	* Load thumbs
+	**/
 	thumbs_load: function(){
 		var self = this,
 			wrapper = self.wrapper,
@@ -177,7 +184,7 @@ var Slideshow = {
 			delay = self.delay,
 			first_load = (next_img)? false : true;
 
-		limit = (limit>max_limit)? max_limit : limit;	
+		limit = (limit>max_limit)? max_limit : limit;	// thumbs count to load
 		url += (next_img)? "" : "&limit="+limit;
 		self.scroll_lock = true;
 		$.ajax({
@@ -185,14 +192,14 @@ var Slideshow = {
 	        url: url,        
 	        dataType: "jsonp",
 	        beforeSend: function(){
-	        	if(loader && first_load) loader_elem.show();	
+	        	if(loader && first_load) loader_elem.show();	// show loader gif while loading
 	        },
 	        success: function(data){
 	            var limit = data.entries.length;
 
 	            self.img_count = data.imageCount;	
 	            for(var i=0; i<limit; i++){ 
-	                var data_next = data.links.next;	
+	                var data_next = data.links.next;	// remember form which thumb we should start loading next time
 
 	                self.next_img = (data_next === undefined)? false : data_next;	
 
@@ -215,14 +222,14 @@ var Slideshow = {
 	        complete: function(){
 	        	self.navigate();
 	        	if(first_load) {	        		
-		            if(loader) loader_elem.hide();		
+		            if(loader) loader_elem.hide();		// hide loader gif
 		            if(!autostart) wrapper.find(".start-button").show();
 		            else {
 		            	var start_elem = thumbs_list.find(".list-item:first"),
 							url = start_elem.find("img").attr("data-l-src"),
 			       			alt = start_elem.find("img").attr("alt");
 
-			       		
+			       		// show the first slide
 			       		start_elem.addClass("active");
 			       		self.show_slide(url, alt, 0);
 			       		self.toggle_arrows();	       		
@@ -233,6 +240,9 @@ var Slideshow = {
 	        }
 	    });
 	},
+	/**
+	* Setting thumbs scrolling callback
+	**/
 	thumbs_mousewheel: function(target){
 		var self = this,		
 			wrapper = self.wrapper;		
@@ -259,6 +269,9 @@ var Slideshow = {
 			}			
 		});		
 	},
+	/**
+	* Scroll to center the active slide thumb
+	**/
 	thumbs_scroll: function(target){
 		var self = this,
 			wrapper = self.wrapper,
@@ -283,11 +296,15 @@ var Slideshow = {
 
 	    return (prev_index>=0) ? index-prev_index : 0;
 	},
+	/**
+	* Setting navigation callbacks
+	**/
 	navigate: function(){
 		var self = this,
 			wrapper = self.wrapper,
 			delay = self.delay;			
 
+		// Thumbs click navigation callback
 		wrapper.find(".thumbs-list .list-item").on("click", function(event){
 			var d = $.when(self.d_cur, self.d_next);
 
@@ -304,6 +321,7 @@ var Slideshow = {
 	       		self.toggle_arrows();
 			}
 		}); 
+		// Arrows click navigation callback
 		wrapper.find(".nav").on("click", function(event){
 			var thumbs_list = wrapper.find(".thumbs-list"),
 				list_item = thumbs_list.find(".list-item"),
@@ -313,6 +331,9 @@ var Slideshow = {
 			if($(this).hasClass("nav-right") && (activeIndex+1<list_item.size())) list_item.eq(activeIndex+1).click();
 		});
 	},
+	/**
+	* Toggles navigation arrows display at the end and at the beginning of the slideshow
+	**/
 	toggle_arrows: function(){
 		var self = this,
 			wrapper = self.wrapper,
@@ -325,6 +346,9 @@ var Slideshow = {
 			wrapper.find(".nav").animate({"opacity" : 1}, 200);
 		}
 	},
+	/**
+	* Shows active slide
+	**/
 	show_slide: function(url, alt, direction){
 		var self = this,
 			wrapper = self.wrapper,
@@ -343,14 +367,17 @@ var Slideshow = {
     			.addClass("slide-img");
 
 	    if(!self.animated) {
-	    	if(!direction) {
-	       		slide_current.html(slide_img);
+	    	// if not animated slideshow
+	       	if(!direction) {
+	       		// if there is no slide change
+	    		slide_current.html(slide_img);
 	    		slide_img.load(function() {
 					d_cur.resolve();
 					d_next.resolve();
 				});
 	    	} else {
-	    		slide_next.html(slide_img);
+	    		// changing slide
+		        slide_next.html(slide_img);
 		       	slide_img.load(function() {
 					slide_next.animate({"opacity" : 1}, 500, function(){
 		                $(this).addClass("current").removeClass("next");
@@ -364,17 +391,21 @@ var Slideshow = {
 			}
 	        
 	    } else {
-	    	if(!direction) {
+	    	// if slideshow is animated
+	        if(!direction) {
+	        	// if there is no slide change
 	        	slide_current.html(slide_img);
 	        	slide_img.load(function() {
 					d_cur.resolve();
 					d_next.resolve();
 				});
 	        } else {
+	        	// changing slide
 	        	var height = self.height,
 	        	offset = (fullsize_enabled) ? $(".modal-photo-galery").height()+$(".modal-photo-galery").height()*0.1 : height+height*0.1;
 	        	if(direction>0) {
-	        		slide_next.css({"top": offset, "opacity" : 1});
+	        		// changing slide to the next one		        	
+		        	slide_next.css({"top": offset, "opacity" : 1});
 		        	slide_next.html(slide_img);
 		        	slide_img.load(function() {
 		        		slide_next.animate({"top" : 0}, 500, function(){
@@ -387,6 +418,7 @@ var Slideshow = {
 			            });
 					});
 				} else {
+					// changing slide to the previous one
 					slide_next.css({"top": -offset, "opacity" : 1});
 		        	slide_next.html(slide_img);
 		        	slide_img.load(function() {
@@ -405,6 +437,9 @@ var Slideshow = {
 	    self.d_cur = d_cur.promise();
 	    self.d_next = d_next.promise();
 	},
+	/**
+	* Shows next slide in autoplay mode
+	**/
 	slideshow_autoplay: function(){
 		var self = this,
 			wrapper = self.wrapper,
@@ -427,6 +462,9 @@ var Slideshow = {
 			clearInterval(self.autoplay_intID);
 		}
 	},
+	/**
+	* Opens slideshow in fullsize mode
+	**/
 	fullscreen: function(html){
 		var self = this,
 			wrapper = self.wrapper,
@@ -447,28 +485,29 @@ var Slideshow = {
 			.addClass("slide-img-wrap")
 			.append(html);
 
-        api.open(slide);	
+        api.open(slide);	// creates full window size overlay
 
-        $(document).on("keydown", function(event){		
+        $(document).on("keydown", function(event){		// keyboard navigation in fullsize mode
         	if(self.fullsize_enabled) {
 				switch(event.keyCode){
-					case 27: 				
+					case 27: 				// Esc button
 						self.fullsize_enabled = false;
 						wrapper.find(".thumbs-list .active").click();
 						$(".modal-close").click();
 						break;
-					case 32: 				
+					case 32: 				// space bar
 						nav_right.click();
 						break;					
-					case 39: 				
+					case 39: 				// right arrow button
 						nav_right.click();
 						break;
-					case 37: 				
+					case 37: 				// left arrow button
 						nav_left.click();
 						break;
 				}
 			}
 		});
+		// click navigates to the next slide
 		$(document).on("click", ".modal-photo-galery .current", function(event){
 			if(self.fullsize_enabled) nav_right.click();
 		});
